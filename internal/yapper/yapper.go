@@ -86,7 +86,7 @@ func (l *Logger) print(level Level, message string, properties map[string]string
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return l.out.Write(append(line, '\n'))
+	return l.out.Write(append(append(line, '\n'), '\n'))
 }
 
 func (l *Logger) Write(message []byte) (n int, err error) {

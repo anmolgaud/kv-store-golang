@@ -20,7 +20,7 @@ type KeyValueModel struct {
 	DB *sql.DB
 }
 
-func (m KeyValueModel) Insert( cache *CacheEntry) error {
+func (m KeyValueModel) Insert(cache *CacheEntry) error {
 	nowMilli := time.Now().UTC().UnixMilli()
 	query := `INSERT INTO kv (key, value, ttl) VALUES (?, ?, ?);`
 	args := []any{
@@ -31,12 +31,12 @@ func (m KeyValueModel) Insert( cache *CacheEntry) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, args)
+	_, err := m.DB.ExecContext(ctx, query, args...)
 	return err;
 }
 
 func (m KeyValueModel) Get(key string) (*CacheEntry, error) {
-	query := `SELECT id, key, value, ttl, is_deleted, created_at FROM kv WHERE ttl <= ? AND key = ?;`
+	query := `SELECT id, key, value, ttl, is_deleted, created_at FROM kv WHERE ttl >= ? AND key = ?;`
 	cacheEntry := CacheEntry{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second);
