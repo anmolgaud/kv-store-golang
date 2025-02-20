@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 	"errors"
 )
 
-func (app *application) serve() error {
+func (app *application) serve(quit <-chan os.Signal) error {
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%d", app.config.port),
 		Handler: app.routes(),
@@ -21,10 +19,8 @@ func (app *application) serve() error {
 	}
 
 	shutdownError := make(chan error)
-
-	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	
+	go func(quit <-chan os.Signal) {
 		s := <- quit
 		app.yapper.PrintInfo("shutting down server", map[string]string{
 			"signal": s.String(),
@@ -33,7 +29,22 @@ func (app *application) serve() error {
 		defer cancel()
 
 		shutdownError <- srv.Shutdown(ctx)
-	}()
+	}(quit)
+	go func(quit <-chan os.Signal){
+		for {
+			select {
+			case <-app.ticker.C:
+				err := app.CleanUp()
+				if err != nil {
+					app.yapper.PrintError(err, map[string]string{"message": "Failed to cleanup"})
+					shutdownError <- err
+					return
+				}
+			case <-quit:
+				return
+			}
+		}
+	}(quit)
 
 	app.yapper.PrintInfo("starting server", map[string]string{
 		"address": srv.Addr,

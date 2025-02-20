@@ -66,7 +66,7 @@ func (m KeyValueModel) Delete(key string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second);
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, query, key);
+	result, err := m.DB.ExecContext(ctx, query, key)
 	if err != nil {
 		return err
 	}
@@ -78,4 +78,20 @@ func (m KeyValueModel) Delete(key string) error {
 		return ErrRecordNotFound
 	}
 	return nil
+}
+
+func (m KeyValueModel) CleanUp() (int, error) {
+	query := `DELETE FROM kv WHERE ttl <= ? OR is_deleted = 1;`
+	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second);
+	defer cancel()
+	nowMilli := time.Now().UTC().UnixMilli()
+	result, err := m.DB.ExecContext(ctx, query, nowMilli)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }

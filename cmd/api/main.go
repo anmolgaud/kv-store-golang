@@ -6,7 +6,8 @@ import (
 	"flag"
 	"os"
 	"time"
-
+	"os/signal"
+	"syscall"
 	"anmol.gaud/internal/models"
 	"anmol.gaud/internal/yapper"
 	_ "github.com/mattn/go-sqlite3"
@@ -26,6 +27,7 @@ type application struct {
 	config config
 	yapper *yapper.Logger
 	models models.Models
+	ticker time.Ticker
 }
 
 func main() {
@@ -36,21 +38,29 @@ func main() {
 	flag.Parse()
 
 	yapper := yapper.New(os.Stdout, yapper.LevelInfo)
-
+	ticker := time.NewTicker(5 * time.Second)
 	db, err := openDB(cfg)
 	if err != nil {
 		yapper.PrintFatal(err, nil)
 	}
+	defer ticker.Stop()
 	defer db.Close()
 	yapper.PrintInfo("database connection pool established", nil)
+
+	quit := make(chan os.Signal, 1)
 
 	app := &application{
 		config: cfg,
 		yapper: yapper,
 		models: models.NewModel(db),
+		ticker: *ticker,
 	}
+	
+	go func(quit chan<- os.Signal) {
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	}(quit)
 
-	err = app.serve()
+	err = app.serve(quit)
 	if err != nil {
 		yapper.PrintFatal(err, nil)
 	}
