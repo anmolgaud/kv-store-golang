@@ -14,10 +14,10 @@ This project is built with Golang and requires sqlite3
 ## Usage/Examples
 
 There are three api methods \
-Add a value
-POST http://{API_URL}/v1/key
+Add a value \
+POST http://{API_URL}/v1/key \
 Payload:
-```json
+```javascript
 {
     "key": "abc",
     "value":"xyz",
@@ -25,18 +25,18 @@ Payload:
 }
 ```
 
-Get a value
-POST http://{API_URL}/v1/key
-Payload:
+Get a value \
+POST http://{API_URL}/v1/key \
+Payload:\
 ```json
 {
     "key": "abc",
 }
 ```
 
-Delete a value
-PATCH http://{API_URL}/v1/key
-Payload:
+Delete a value \
+PATCH http://{API_URL}/v1/key \
+Payload: \
 ```json
 {
     "key": "abc",
