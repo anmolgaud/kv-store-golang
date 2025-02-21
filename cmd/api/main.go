@@ -5,13 +5,17 @@ import (
 	"database/sql"
 	"flag"
 	"os"
-	"time"
 	"os/signal"
 	"syscall"
+	"time"
+
 	"anmol.gaud/internal/models"
-	"anmol.gaud/internal/yapper"
 	"anmol.gaud/internal/utils"
+	"anmol.gaud/internal/yapper"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 const version = "1.0.0"
@@ -40,12 +44,16 @@ func main() {
 
 	yapper := yapper.New(os.Stdout, yapper.LevelInfo)
 	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 	db, err := openDB(cfg)
 	if err != nil {
 		yapper.PrintFatal(err, nil)
 	}
-	defer ticker.Stop()
 	defer db.Close()
+	err = applyMigrations(db)
+	if err != nil {
+		yapper.PrintFatal(err, nil)
+	}
 	yapper.PrintInfo("database connection pool established", nil)
 
 	quit := make(chan os.Signal, 1)
@@ -72,7 +80,7 @@ func main() {
 }
 
 func openDB(cfg config) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "/Users/anmol/go-code/kv-store/data/store.db")
+	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		return nil, err 
 	}
@@ -85,4 +93,20 @@ func openDB(cfg config) (*sql.DB, error) {
 	}
 
 	return db, nil 
+}
+
+func applyMigrations(db *sql.DB) error {
+	instance, err := sqlite3.WithInstance(db, &sqlite3.Config{})
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance("file:///Users/anmol/go-code/kv-store/migrations", "sqlite3", instance)
+	if err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	return nil
 }
