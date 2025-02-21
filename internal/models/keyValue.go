@@ -36,7 +36,7 @@ func (m KeyValueModel) Insert(cache *CacheEntry) error {
 }
 
 func (m KeyValueModel) Get(key string) (*CacheEntry, error) {
-	query := `SELECT id, key, value, ttl, is_deleted, created_at FROM kv WHERE ttl >= ? AND key = ?;`
+	query := `SELECT id, key, value, ttl, is_deleted, created_at FROM kv WHERE is_deleted = 0 AND ttl >= ? AND key = ?;`
 	cacheEntry := CacheEntry{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second);
