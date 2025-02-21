@@ -12,10 +12,11 @@ import (
 	"anmol.gaud/internal/models"
 	"anmol.gaud/internal/utils"
 	"anmol.gaud/internal/yapper"
+	"anmol.gaud/migrations"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 const version = "1.0.0"
@@ -45,16 +46,19 @@ func main() {
 	yapper := yapper.New(os.Stdout, yapper.LevelInfo)
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
-	db, err := openDB(cfg)
+
+	db, err := openDB()
 	if err != nil {
 		yapper.PrintFatal(err, nil)
 	}
 	defer db.Close()
+	yapper.PrintInfo("database connection pool established", nil)
+
 	err = applyMigrations(db)
 	if err != nil {
 		yapper.PrintFatal(err, nil)
 	}
-	yapper.PrintInfo("database connection pool established", nil)
+	yapper.PrintInfo("migrations applied successfully!", nil)
 
 	quit := make(chan os.Signal, 1)
 	done := make(chan int)
@@ -79,7 +83,7 @@ func main() {
 	}
 }
 
-func openDB(cfg config) (*sql.DB, error) {
+func openDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		return nil, err 
@@ -100,8 +104,12 @@ func applyMigrations(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	s, err := iofs.New(migrations.MigrationFS, ".")
+	if err != nil {
+		return err
+	}
 
-	m, err := migrate.NewWithDatabaseInstance("file:///Users/anmol/go-code/kv-store/migrations", "sqlite3", instance)
+	m, err := migrate.NewWithInstance("iofs", s, "sqlite3", instance)
 	if err != nil {
 		return err
 	}
