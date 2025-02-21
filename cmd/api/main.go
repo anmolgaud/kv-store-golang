@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"anmol.gaud/internal/models"
 	"anmol.gaud/internal/yapper"
+	"anmol.gaud/internal/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -48,6 +49,9 @@ func main() {
 	yapper.PrintInfo("database connection pool established", nil)
 
 	quit := make(chan os.Signal, 1)
+	done := make(chan int)
+	defer close(quit)
+	defer close(done)
 
 	app := &application{
 		config: cfg,
@@ -59,9 +63,10 @@ func main() {
 	go func(quit chan<- os.Signal) {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	}(quit)
-
-	err = app.serve(quit)
+	subscribers := utils.BroadCast(done, quit, 2)
+	err = app.serve(quit, subscribers)
 	if err != nil {
+		done <- 1
 		yapper.PrintFatal(err, nil)
 	}
 }

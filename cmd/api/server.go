@@ -9,7 +9,7 @@ import (
 	"errors"
 )
 
-func (app *application) serve(quit <-chan os.Signal) error {
+func (app *application) serve(quit <-chan os.Signal, outputs []chan os.Signal) error {
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%d", app.config.port),
 		Handler: app.routes(),
@@ -20,8 +20,8 @@ func (app *application) serve(quit <-chan os.Signal) error {
 
 	shutdownError := make(chan error)
 	
-	go func(quit <-chan os.Signal) {
-		s := <- quit
+	go func(subscribe <-chan os.Signal) {
+		s := <- subscribe
 		app.yapper.PrintInfo("shutting down server", map[string]string{
 			"signal": s.String(),
 		})
@@ -29,8 +29,9 @@ func (app *application) serve(quit <-chan os.Signal) error {
 		defer cancel()
 
 		shutdownError <- srv.Shutdown(ctx)
-	}(quit)
-	go func(quit <-chan os.Signal){
+	}(outputs[0])
+
+	go func(subscribe <-chan os.Signal){
 		for {
 			select {
 			case <-app.ticker.C:
@@ -40,11 +41,12 @@ func (app *application) serve(quit <-chan os.Signal) error {
 					shutdownError <- err
 					return
 				}
-			case <-quit:
+			case <-subscribe:
+				app.yapper.PrintInfo("exiting cleanup goroutine", map[string]string{})
 				return
 			}
 		}
-	}(quit)
+	}(outputs[1])
 
 	app.yapper.PrintInfo("starting server", map[string]string{
 		"address": srv.Addr,
