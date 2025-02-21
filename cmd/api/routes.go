@@ -13,9 +13,9 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
-	router.HandlerFunc(http.MethodPost, "/v1/key", app.getCacheEntryHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/key",  app.addCacheEntryHandler)
-	router.HandlerFunc(http.MethodPatch, "/v1/key",  app.deleteCacheEntryHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/get-key", app.getCacheEntryHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/add-key",  app.addCacheEntryHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/delete-key",  app.deleteCacheEntryHandler)
 
 
 	return app.recoverPanic(router);

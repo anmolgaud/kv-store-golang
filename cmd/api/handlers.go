@@ -63,7 +63,7 @@ func (app *application) getCacheEntryHandler(w http.ResponseWriter, r *http.Requ
 		}
 		return
 	}
-	err = app.writeJSON(w, http.StatusOK, envelope{"value": cacheEntry}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"value": cacheEntry.Value}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -15,7 +15,7 @@ This project is built with Golang and requires sqlite3
 
 There are three api methods \
 Add a value \
-POST http://{API_URL}/v1/key \
+POST http://{API_URL}/v1/add-key \
 Payload:
 ```javascript
 {
@@ -26,7 +26,7 @@ Payload:
 ```
 
 Get a value \
-POST http://{API_URL}/v1/key \
+POST http://{API_URL}/v1/get-key \
 Payload:
 ```json
 {
@@ -35,7 +35,7 @@ Payload:
 ```
 
 Delete a value \
-PATCH http://{API_URL}/v1/key \
+PATCH http://{API_URL}/v1/delete-key \
 Payload:
 ```json
 {
