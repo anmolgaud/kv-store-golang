@@ -15,10 +15,9 @@ This project is built with Golang and requires sqlite3
 
 There are three api methods \
 Add a value
-
-```json
 POST http://{API_URL}/v1/key
 Payload:
+```json
 {
     "key": "abc",
     "value":"xyz",
@@ -27,18 +26,18 @@ Payload:
 ```
 
 Get a value
-```json
 POST http://{API_URL}/v1/key
 Payload:
+```json
 {
     "key": "abc",
 }
 ```
 
 Delete a value
-```json
 PATCH http://{API_URL}/v1/key
 Payload:
+```json
 {
     "key": "abc",
 }
