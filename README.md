@@ -27,7 +27,7 @@ Payload:
 
 Get a value \
 POST http://{API_URL}/v1/key \
-Payload:\
+Payload:
 ```json
 {
     "key": "abc",
@@ -36,7 +36,7 @@ Payload:\
 
 Delete a value \
 PATCH http://{API_URL}/v1/key \
-Payload: \
+Payload:
 ```json
 {
     "key": "abc",
