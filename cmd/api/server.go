@@ -9,7 +9,7 @@ import (
 	"errors"
 )
 
-func (app *application) serve(quit <-chan os.Signal, outputs []chan os.Signal) error {
+func (app *application) serve(inputs []chan os.Signal) error {
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%d", app.config.port),
 		Handler: app.routes(),
@@ -29,7 +29,7 @@ func (app *application) serve(quit <-chan os.Signal, outputs []chan os.Signal) e
 		defer cancel()
 
 		shutdownError <- srv.Shutdown(ctx)
-	}(outputs[0])
+	}(inputs[0])
 
 	go func(subscribe <-chan os.Signal){
 		for {
@@ -46,7 +46,7 @@ func (app *application) serve(quit <-chan os.Signal, outputs []chan os.Signal) e
 				return
 			}
 		}
-	}(outputs[1])
+	}(inputs[1])
 
 	app.yapper.PrintInfo("starting server", map[string]string{
 		"address": srv.Addr,

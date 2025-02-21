@@ -76,7 +76,7 @@ func main() {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	}(quit)
 	subscribers := utils.BroadCast(done, quit, 2)
-	err = app.serve(quit, subscribers)
+	err = app.serve(subscribers)
 	if err != nil {
 		done <- 1
 		yapper.PrintFatal(err, nil)
