@@ -1,1 +1,1 @@
-CREATE UNIQUE INDEX IF NOT EXISTS idx_key ON kv(key);
+CREATE INDEX IF NOT EXISTS idx_key ON kv(key);

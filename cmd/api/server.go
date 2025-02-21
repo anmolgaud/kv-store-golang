@@ -42,7 +42,7 @@ func (app *application) serve(quit <-chan os.Signal, outputs []chan os.Signal) e
 					return
 				}
 			case <-subscribe:
-				app.yapper.PrintInfo("exiting cleanup goroutine", map[string]string{})
+				app.yapper.PrintInfo("exiting cleanup goroutine", nil)
 				return
 			}
 		}
